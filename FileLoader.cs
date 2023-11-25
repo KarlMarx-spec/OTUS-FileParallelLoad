@@ -9,7 +9,7 @@ namespace OTUS_FileParallelLoad
             Task<int> t0 = Task.Run(() => CheckSpacesInFile(file1));
             Task<int> t1 = Task.Run(() => CheckSpacesInFile(file2));
             Task<int> t2 = Task.Run(() => CheckSpacesInFile(file3));
-            
+
             Task.WaitAll();
 
             return t0.Result + t1.Result + t2.Result;
@@ -17,20 +17,32 @@ namespace OTUS_FileParallelLoad
 
         public int CheckSpacesInFilesInPath(string filePath)
         {
-            int spaceCount = 0;
-
             try
             {
                 var files = Directory.GetFiles(filePath);
 
-                foreach (var file in files)
-                {
-                    spaceCount += CheckSpacesInFile(file);
-                }
+                Task<int> t0 = Task.Run(() => CheckSpacesInFileInPathAsync(files, 0));
+                Task<int> t1 = Task.Run(() => CheckSpacesInFileInPathAsync(files, 1));
+                Task<int> t2 = Task.Run(() => CheckSpacesInFileInPathAsync(files, 2));
+
+                Task.WaitAll();
+
+                return t0.Result + t1.Result + t2.Result;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+            }
+            return 0;
+        }
+
+        public int CheckSpacesInFileInPathAsync(string[] files, int threadNum)
+        {
+            int spaceCount = 0;
+
+            for (int i = threadNum; i < files.Length; i += 3)
+            {
+                spaceCount += CheckSpacesInFile(files[i]);
             }
 
             return spaceCount;
